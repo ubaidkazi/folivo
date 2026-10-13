@@ -1,26 +1,391 @@
+
 @import "tailwindcss";
 
+/* Tailwind dark: variant follows the .dark class */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* =========================================================
+   1. FOLIVO DESIGN TOKENS — LIGHT THEME
+   ========================================================= */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
+
+  /* Main colors */
+  --background: #f7f9f7;
+  --foreground: #172922;
+
+  --card: #ffffff;
+  --card-foreground: #172922;
+
+  --popover: #ffffff;
+  --popover-foreground: #172922;
+
+  --primary: #176e59;
+  --primary-foreground: #ffffff;
+
+  --secondary: #e7f0ea;
+  --secondary-foreground: #214b3c;
+
+  --muted: #eff2ef;
+  --muted-foreground: #66766e;
+
+  --accent: #e3f2eb;
+  --accent-foreground: #155640;
+
+  --destructive: #b53e49;
+  --destructive-foreground: #ffffff;
+
+  /* Surfaces */
+  --surface-subtle: #f2f5f2;
+  --surface-raised: #ffffff;
+  --surface-hover: #edf3ee;
+
+  /* Borders and focus */
+  --border: #dfe6e1;
+  --input: #d7e0d9;
+  --ring: #4b9b7e;
+
+  /* Financial status colors */
+  --income: #176b49;
+  --income-bg: #e4f3e9;
+
+  --expense: #b53e49;
+  --expense-bg: #fbeaec;
+
+  --transfer: #325f9a;
+  --transfer-bg: #e8f0fc;
+
+  --debt: #91581e;
+  --debt-bg: #fff1dc;
+
+  /* General status colors */
+  --success: #176b49;
+  --success-bg: #e4f3e9;
+
+  --warning: #91581e;
+  --warning-bg: #fff1dc;
+
+  --info: #325f9a;
+  --info-bg: #e8f0fc;
+
+  /* Charts */
+  --chart-1: #176e59;
+  --chart-2: #3978ad;
+  --chart-3: #c18a44;
+  --chart-4: #8f77b5;
+  --chart-5: #b65d73;
+
+  /* Sidebar */
+  --sidebar: #ffffff;
+  --sidebar-foreground: #263b31;
+  --sidebar-primary: #176e59;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e7f0ea;
+  --sidebar-accent-foreground: #176e59;
+  --sidebar-border: #dfe6e1;
+  --sidebar-ring: #4b9b7e;
+
+  /* Base radius — used by shadcn/ui */
+  --radius: 0.75rem;
+
+  /* Layout */
+  --sidebar-width: 16rem;
+  --sidebar-width-collapsed: 4.5rem;
+  --topbar-height: 4rem;
+
+  --page-gutter: 1.5rem;
+  --card-padding: 1.25rem;
+  --section-gap: 1.5rem;
+
+  --content-max-width: 1440px;
+
+  /* Shadows */
+  --shadow-surface:
+    0 1px 3px rgb(18 45 31 / 0.04),
+    0 3px 12px rgb(18 45 31 / 0.025);
+
+  --shadow-floating:
+    0 12px 32px rgb(18 45 31 / 0.10),
+    0 3px 8px rgb(18 45 31 / 0.04);
 }
+
+/* =========================================================
+   2. FOLIVO DESIGN TOKENS — DARK THEME
+   ========================================================= */
+
+.dark {
+  color-scheme: dark;
+
+  --background: #101914;
+  --foreground: #edf3ee;
+
+  --card: #19251d;
+  --card-foreground: #edf3ee;
+
+  --popover: #1e2b22;
+  --popover-foreground: #edf3ee;
+
+  --primary: #77c4a0;
+  --primary-foreground: #10291d;
+
+  --secondary: #26392c;
+  --secondary-foreground: #d7eadd;
+
+  --muted: #223027;
+  --muted-foreground: #a9b8ad;
+
+  --accent: #294335;
+  --accent-foreground: #c3ecd2;
+
+  --destructive: #f18c92;
+  --destructive-foreground: #361317;
+
+  --surface-subtle: #152119;
+  --surface-raised: #203027;
+  --surface-hover: #29392f;
+
+  --border: #34463a;
+  --input: #415449;
+  --ring: #77c4a0;
+
+  /* Financial status colors */
+  --income: #87d6a5;
+  --income-bg: #183b29;
+
+  --expense: #f1959c;
+  --expense-bg: #48242b;
+
+  --transfer: #94bdf3;
+  --transfer-bg: #1f354f;
+
+  --debt: #efbd76;
+  --debt-bg: #46321c;
+
+  /* General status colors */
+  --success: #87d6a5;
+  --success-bg: #183b29;
+
+  --warning: #efbd76;
+  --warning-bg: #46321c;
+
+  --info: #94bdf3;
+  --info-bg: #1f354f;
+
+  /* Charts */
+  --chart-1: #77c4a0;
+  --chart-2: #8bbbe8;
+  --chart-3: #e5b36f;
+  --chart-4: #b29ad7;
+  --chart-5: #e58ba2;
+
+  /* Sidebar */
+  --sidebar: #162119;
+  --sidebar-foreground: #e3eee5;
+  --sidebar-primary: #77c4a0;
+  --sidebar-primary-foreground: #10291d;
+  --sidebar-accent: #294335;
+  --sidebar-accent-foreground: #c3ecd2;
+  --sidebar-border: #34463a;
+  --sidebar-ring: #77c4a0;
+
+  /* Shadows */
+  --shadow-surface:
+    0 1px 3px rgb(0 0 0 / 0.15),
+    0 3px 12px rgb(0 0 0 / 0.10);
+
+  --shadow-floating:
+    0 12px 32px rgb(0 0 0 / 0.35),
+    0 3px 8px rgb(0 0 0 / 0.18);
+}
+
+/* =========================================================
+   3. TAILWIND V4 THEME BRIDGE
+
+   Exposes our CSS variables as Tailwind utilities.
+   For example:
+   --color-primary -> bg-primary / text-primary
+   --radius-xl     -> rounded-xl
+   ========================================================= */
 
 @theme inline {
+  /* Fonts */
+  --font-sans: var(--font-geist-sans), Arial, sans-serif;
+  --font-mono: var(--font-geist-mono), monospace;
+
+  /* Main theme colors */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Surfaces */
+  --color-surface-subtle: var(--surface-subtle);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-hover: var(--surface-hover);
+
+  /* Financial statuses */
+  --color-income: var(--income);
+  --color-income-bg: var(--income-bg);
+
+  --color-expense: var(--expense);
+  --color-expense-bg: var(--expense-bg);
+
+  --color-transfer: var(--transfer);
+  --color-transfer-bg: var(--transfer-bg);
+
+  --color-debt: var(--debt);
+  --color-debt-bg: var(--debt-bg);
+
+  /* General statuses */
+  --color-success: var(--success);
+  --color-success-bg: var(--success-bg);
+
+  --color-warning: var(--warning);
+  --color-warning-bg: var(--warning-bg);
+
+  --color-info: var(--info);
+  --color-info-bg: var(--info-bg);
+
+  /* Charts */
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  /* Sidebar */
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground:
+    var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground:
+    var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Border radius */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+
+  /* Typography */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+
+  --text-page-title: clamp(1.5rem, 2vw, 2rem);
+  --text-amount: clamp(1.5rem, 2vw, 2rem);
+
+  /* Application spacing */
+  --spacing-page: var(--page-gutter);
+  --spacing-card: var(--card-padding);
+  --spacing-section: var(--section-gap);
+
+  /* Shadows */
+  --shadow-card: var(--shadow-surface);
+  --shadow-float: var(--shadow-floating);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* =========================================================
+   4. BASE STYLES
+   ========================================================= */
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    min-height: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    min-height: 100vh;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: var(--accent);
+    color: var(--accent-foreground);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* =========================================================
+   5. RESPONSIVE APP TOKENS
+   ========================================================= */
+
+@media (max-width: 767px) {
+  :root {
+    --page-gutter: 1rem;
+    --card-padding: 1rem;
+    --section-gap: 1.25rem;
+  }
+}
+
+/* =========================================================
+   6. ACCESSIBILITY / REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
