@@ -1,0 +1,155 @@
+
+.sidebar {
+  width: 260px;
+  height: 100dvh;
+  flex-shrink: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  padding: 24px 14px;
+
+  background: var(--sidebar, var(--card));
+  color: var(--sidebar-foreground, var(--foreground));
+  border-right: 1px solid var(--sidebar-border, var(--border));
+
+  position: sticky;
+  top: 0;
+  overflow-y: auto;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 8px 12px 28px;
+
+  color: inherit;
+  text-decoration: none;
+}
+
+.brandIcon {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 12px;
+
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.brandText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.brandName {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.6px;
+  line-height: 1.2;
+}
+
+.brandSubtitle {
+  font-size: 11px;
+  color: var(--muted-foreground);
+}
+
+.navigation {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sectionLabel {
+  padding: 0 14px;
+
+  color: var(--muted-foreground);
+
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+.navList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 14px;
+
+  border-radius: 10px;
+
+  color: var(--muted-foreground);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
+}
+
+a.navItem:hover {
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+
+a.navItem:focus-visible,
+.brand:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.navItemActive,
+a.navItemActive:hover {
+  background: var(--sidebar-accent, var(--accent));
+  color: var(--sidebar-accent-foreground, var(--foreground));
+  font-weight: 600;
+}
+
+.navItemActive svg {
+  color: var(--primary);
+}
+
+.navItemDisabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.lockIcon {
+  margin-left: auto;
+}
+
+.sidebarFooter {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--sidebar-border, var(--border));
+}
+
+/* Mobile navigation will be implemented in Step 7.3.3. */
+@media (max-width: 767px) {
+  .sidebar {
+    display: none;
+  }
+}
