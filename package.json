@@ -20,10 +20,12 @@
     "server-only": "^0.0.1"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
     "@tailwindcss/turbopack": "^4",
     "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.4.0",
+    "postcss": "^8.5.32",
     "prisma": "^7.10.0",
     "tailwindcss": "^4"
   }

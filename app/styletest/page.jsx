@@ -2,6 +2,11 @@
 "use client";
 
 import { useState } from "react";
+// import { headers } from "next/headers";
+// import { redirect } from "next/navigation";
+
+// import { auth } from "../../lib/auth";
+
 
 export default function HomePage() {
   const [darkMode, setDarkMode] = useState(false);
@@ -12,6 +17,20 @@ export default function HomePage() {
     document.documentElement.classList.toggle("dark", nextMode);
     setDarkMode(nextMode);
   }
+
+
+
+  
+
+
+  // const session = await auth.api.getSession({
+  //   headers: await headers(),
+  // });
+
+  // if (!session) {
+  //   redirect("/login");
+  // }
+
 
   return (
     <main className="min-h-screen bg-background px-page py-10">
