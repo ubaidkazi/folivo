@@ -1,0 +1,182 @@
+
+.menu {
+  position: relative;
+}
+
+.trigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 6px 10px;
+  border-radius: 12px;
+
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+
+  transition: background-color 150ms ease;
+}
+
+.trigger::-webkit-details-marker {
+  display: none;
+}
+
+.trigger::marker {
+  content: "";
+}
+
+.trigger:hover,
+.menu[open] .trigger {
+  background: var(--accent);
+}
+
+.trigger:focus-visible {
+  outline: 2px solid var(--ring, var(--primary));
+  outline-offset: 2px;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: var(--primary);
+  color: var(--primary-foreground);
+
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.triggerInformation {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+}
+
+.userName {
+  max-width: 145px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+
+  color: var(--foreground);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.userRole {
+  color: var(--muted-foreground);
+  font-size: 11px;
+}
+
+.chevron {
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+  transition: transform 150ms ease;
+}
+
+.menu[open] .chevron {
+  transform: rotate(180deg);
+}
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 50;
+
+  width: 260px;
+  max-width: calc(100vw - 24px);
+
+  padding: 8px;
+
+  background: var(--popover, var(--card));
+  color: var(--popover-foreground, var(--foreground));
+
+  border: 1px solid var(--border);
+  border-radius: 14px;
+
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.10),
+    0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.dropdownHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  padding: 12px;
+}
+
+.dropdownName {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.dropdownEmail {
+  color: var(--muted-foreground);
+  font-size: 12px;
+
+  overflow-wrap: anywhere;
+}
+
+.dropdownDivider {
+  height: 1px;
+  margin: 4px 0;
+
+  background: var(--border);
+}
+
+.dropdownActions {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dropdownItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  width: 100%;
+  min-height: 40px;
+  padding: 10px 12px;
+
+  border-radius: 8px;
+
+  color: var(--foreground);
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.disabledItem {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 767px) {
+  .triggerInformation,
+  .chevron {
+    display: none;
+  }
+
+  .trigger {
+    padding: 4px;
+  }
+
+  .avatar {
+    width: 34px;
+    height: 34px;
+  }
+}
