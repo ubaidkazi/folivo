@@ -13,6 +13,12 @@
   background: var(--background);
   border-bottom: 1px solid var(--border);
 }
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
 
 .pageInformation {
   display: flex;
@@ -53,6 +59,11 @@
     padding: 14px 18px;
     gap: 12px;
   }
+
+  .headerLeft {
+    gap: 12px;
+  }
+  
 
   .pageTitle {
     font-size: 19px;

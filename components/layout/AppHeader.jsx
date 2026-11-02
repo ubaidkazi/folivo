@@ -2,7 +2,10 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+
+import MobileNavigation from "./MobileNavigation";
 import UserMenu from "./UserMenu";
+
 import styles from "./AppHeader.module.css";
 
 const pageInformation = {
@@ -44,9 +47,13 @@ export default function AppHeader({ user }) {
 
   return (
     <header className={styles.header}>
-      <div className={styles.pageInformation}>
-        <h1 className={styles.pageTitle}>{page.title}</h1>
-        <p className={styles.pageSubtitle}>{page.subtitle}</p>
+      <div className={styles.headerLeft}>
+        <MobileNavigation />
+
+        <div className={styles.pageInformation}>
+          <h1 className={styles.pageTitle}>{page.title}</h1>
+          <p className={styles.pageSubtitle}>{page.subtitle}</p>
+        </div>
       </div>
 
       <div className={styles.headerActions}>
