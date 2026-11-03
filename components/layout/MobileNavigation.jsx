@@ -5,67 +5,20 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { Menu, X, LockKeyhole } from "lucide-react";
+
 import {
-  Menu,
-  X,
-  LayoutDashboard,
-  Wallet,
-  ArrowLeftRight,
-  ChartPie,
-  ChartNoAxesColumn,
-  Settings,
-  LockKeyhole,
-} from "lucide-react";
+  mobileNavigationItems,
+  isActiveRoute,
+} from "./navigation";
 
 import styles from "./MobileNavigation.module.css";
-
-const navigationItems = [
-  {
-    label: "Dashboard",
-    href: "/dashboard",
-    icon: LayoutDashboard,
-    enabled: true,
-  },
-  {
-    label: "Accounts",
-    href: "/accounts",
-    icon: Wallet,
-    enabled: false,
-  },
-  {
-    label: "Transactions",
-    href: "/transactions",
-    icon: ArrowLeftRight,
-    enabled: false,
-  },
-  {
-    label: "Budgets",
-    href: "/budgets",
-    icon: ChartPie,
-    enabled: false,
-  },
-  {
-    label: "Reports",
-    href: "/reports",
-    icon: ChartNoAxesColumn,
-    enabled: false,
-  },
-  {
-    label: "Settings",
-    href: "/settings",
-    icon: Settings,
-    enabled: false,
-  },
-];
-
-function isActiveRoute(pathname, href) {
-  return pathname === href || pathname.startsWith(`${href}/`);
-}
 
 export default function MobileNavigation() {
   const pathname = usePathname();
 
   const dialogRef = useRef(null);
+
   const [isOpen, setIsOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
 
@@ -84,7 +37,9 @@ export default function MobileNavigation() {
 
     if (!dialog?.open || isClosing) return;
 
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    if (
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
       dialog.close();
       return;
     }
@@ -116,10 +71,12 @@ export default function MobileNavigation() {
     }
   }
 
+  // Lock background scrolling while the sheet is open.
   useEffect(() => {
     if (!isOpen) return;
 
     const previousOverflow = document.body.style.overflow;
+
     document.body.style.overflow = "hidden";
 
     return () => {
@@ -127,11 +84,32 @@ export default function MobileNavigation() {
     };
   }, [isOpen]);
 
+  // Close the sheet when navigation changes.
   useEffect(() => {
     if (dialogRef.current?.open) {
       dialogRef.current.close();
     }
   }, [pathname]);
+
+  // Close the mobile sheet if the viewport becomes desktop-sized.
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(min-width: 768px)");
+
+    function handleDesktopViewport(event) {
+      if (event.matches && dialogRef.current?.open) {
+        dialogRef.current.close();
+      }
+    }
+
+    mediaQuery.addEventListener("change", handleDesktopViewport);
+
+    return () => {
+      mediaQuery.removeEventListener(
+        "change",
+        handleDesktopViewport
+      );
+    };
+  }, []);
 
   return (
     <>
@@ -191,9 +169,13 @@ export default function MobileNavigation() {
 
         <nav aria-label="Mobile navigation">
           <ul className={styles.navigationGrid}>
-            {navigationItems.map((item) => {
+            {mobileNavigationItems.map((item) => {
               const Icon = item.icon;
-              const active = isActiveRoute(pathname, item.href);
+
+              const active = isActiveRoute(
+                pathname,
+                item.href
+              );
 
               return (
                 <li key={item.href}>
@@ -202,9 +184,13 @@ export default function MobileNavigation() {
                       href={item.href}
                       onClick={closeSheet}
                       className={`${styles.navigationItem} ${
-                        active ? styles.navigationItemActive : ""
+                        active
+                          ? styles.navigationItemActive
+                          : ""
                       }`}
-                      aria-current={active ? "page" : undefined}
+                      aria-current={
+                        active ? "page" : undefined
+                      }
                     >
                       <Icon
                         size={23}
@@ -215,7 +201,7 @@ export default function MobileNavigation() {
                       <span>{item.label}</span>
                     </Link>
                   ) : (
-                    <div
+                    <span
                       className={`${styles.navigationItem} ${styles.disabledItem}`}
                       aria-disabled="true"
                       title={`${item.label} is coming soon`}
@@ -233,7 +219,7 @@ export default function MobileNavigation() {
                         className={styles.lockIcon}
                         aria-hidden="true"
                       />
-                    </div>
+                    </span>
                   )}
                 </li>
               );

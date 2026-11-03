@@ -5,56 +5,23 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import {
-  LayoutDashboard,
   Wallet,
-  ArrowLeftRight,
-  ChartPie,
-  ChartNoAxesColumn,
-  Settings,
   LockKeyhole,
 } from "lucide-react";
-
+import {
+  navigationItems,
+  settingsNavigationItem,
+  isActiveRoute,
+} from "./navigation";
 import styles from "./AppSidebar.module.css";
 
-const navigationItems = [
-  {
-    label: "Dashboard",
-    href: "/dashboard",
-    icon: LayoutDashboard,
-    enabled: true,
-  },
-  {
-    label: "Accounts",
-    href: "/accounts",
-    icon: Wallet,
-    enabled: true,
-  },
-  {
-    label: "Transactions",
-    href: "/transactions",
-    icon: ArrowLeftRight,
-    enabled: true,
-  },
-  {
-    label: "Budgets",
-    href: "/budgets",
-    icon: ChartPie,
-    enabled: true,
-  },
-  {
-    label: "Reports",
-    href: "/reports",
-    icon: ChartNoAxesColumn,
-    enabled: false,
-  },
-];
 
-function isActiveRoute(pathname, href) {
-  return pathname === href || pathname.startsWith(`${href}/`);
-}
 
 export default function AppSidebar() {
   const pathname = usePathname();
+
+  const SettingsIcon = settingsNavigationItem.icon;
+  
 
   return (
     <aside className={styles.sidebar} aria-label="Application sidebar">
@@ -118,11 +85,10 @@ export default function AppSidebar() {
           aria-disabled="true"
           title="Settings is coming soon"
         >
-          <Settings size={19} strokeWidth={1.9} aria-hidden="true" />
-          <span>Settings</span>
-
+          <SettingsIcon size={19} aria-hidden="true" />
+          <span>{settingsNavigationItem.label}</span>
           <LockKeyhole
-            size={13}
+            size={14}
             className={styles.lockIcon}
             aria-hidden="true"
           />

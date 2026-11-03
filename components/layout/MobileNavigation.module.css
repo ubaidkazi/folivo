@@ -149,6 +149,16 @@
   list-style: none;
 }
 
+.navigationGrid > li {
+  min-width: 0;
+}
+
+.navigationItem {
+  width: 100%;
+}
+
+
+
 .navigationItem {
   position: relative;
 

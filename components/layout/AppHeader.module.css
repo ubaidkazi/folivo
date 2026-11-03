@@ -36,6 +36,13 @@
   letter-spacing: -0.6px;
 
   color: var(--foreground);
+
+  margin: 0;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
 }
 
 .pageSubtitle {
@@ -75,6 +82,7 @@
 }
 
 @media (max-width: 420px) {
+
   .pageSubtitle {
     display: none;
   }
