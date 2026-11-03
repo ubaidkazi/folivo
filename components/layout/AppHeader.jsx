@@ -2,7 +2,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-
+import ThemeToggle from "./ThemeToggle";
 import MobileNavigation from "./MobileNavigation";
 import UserMenu from "./UserMenu";
 
@@ -57,6 +57,7 @@ export default function AppHeader({ user }) {
       </div>
 
       <div className={styles.headerActions}>
+        <ThemeToggle></ThemeToggle>
         <UserMenu user={user} />
       </div>
     </header>

@@ -50,6 +50,7 @@
 .headerActions {
   display: flex;
   align-items: center;
+  gap:12px;
   flex-shrink: 0;
 }
 
@@ -63,7 +64,6 @@
   .headerLeft {
     gap: 12px;
   }
-  
 
   .pageTitle {
     font-size: 19px;
