@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../generated/prisma"
@@ -12,16 +7,24 @@ datasource db {
   provider = "postgresql"
 }
 
+// ============================================
+// BETTER AUTH MODELS
+// ============================================
+
 model User {
-  id            String    @id
+  id            String   @id
   name          String
   email         String
-  emailVerified Boolean   @default(false)
+  emailVerified Boolean  @default(false)
   image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  sessions      Session[]
-  accounts      Account[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  sessions Session[]
+  accounts Account[]
+
+  // Personal financial workspace
+  financialEntities FinancialEntity[]
 
   @@unique([email])
   @@map("user")
@@ -36,7 +39,8 @@ model Session {
   ipAddress String?
   userAgent String?
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([token])
   @@index([userId])
@@ -48,7 +52,6 @@ model Account {
   accountId             String
   providerId            String
   userId                String
-  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   accessToken           String?
   refreshToken          String?
   idToken               String?
@@ -58,6 +61,8 @@ model Account {
   password              String?
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@map("account")
@@ -73,4 +78,209 @@ model Verification {
 
   @@index([identifier])
   @@map("verification")
+}
+
+// ============================================
+// FINANCIAL ENUMS
+// ============================================
+
+// User-visible financial account types
+enum FinancialAccountType {
+  CHECKING
+  SAVINGS
+  CASH
+  CREDIT_CARD
+  LOAN_RECEIVABLE
+  LOAN_PAYABLE
+}
+
+// Internal accounting classifications
+enum LedgerAccountType {
+  ASSET
+  LIABILITY
+  EQUITY
+  INCOME
+  EXPENSE
+}
+
+// Direction of a journal line
+enum JournalDirection {
+  DEBIT
+  CREDIT
+}
+
+// Financial event classification
+enum JournalEntryType {
+  OPENING_BALANCE
+  INCOME
+  EXPENSE
+  TRANSFER
+  CREDIT_CARD_PAYMENT
+  LENDING
+  BORROWING
+  REPAYMENT
+  REFUND
+  ADJUSTMENT
+  REVERSAL
+}
+
+// ============================================
+// FINANCIAL WORKSPACE
+// ============================================
+
+model FinancialEntity {
+  id      String @id @default(cuid())
+  ownerId String @unique
+  name    String
+
+  // USD only for the initial release
+  currency String @default("USD") @db.VarChar(3)
+
+  // IANA time zone, e.g. America/Chicago
+  timeZone String @default("UTC")
+
+  // Null means onboarding is not completed
+  onboardingCompletedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Workspace owner
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+
+  // Financial records belonging to this workspace
+  financialAccounts FinancialAccount[]
+  ledgerAccounts    LedgerAccount[]
+  journalEntries    JournalEntry[]
+
+  @@map("financial_entity")
+}
+
+// ============================================
+// USER-VISIBLE FINANCIAL ACCOUNTS
+// ============================================
+
+model FinancialAccount {
+  id       String               @id @default(cuid())
+  entityId String
+  name     String
+  type     FinancialAccountType
+
+  // Each visible account has one ledger account
+  ledgerAccountId String @unique
+
+  // Preserve historical records when archived
+  isArchived Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  entity FinancialEntity @relation(fields: [entityId], references: [id], onDelete: Restrict)
+
+  ledgerAccount LedgerAccount @relation(fields: [ledgerAccountId], references: [id], onDelete: Restrict)
+
+  @@index([entityId])
+  @@index([entityId, type])
+  @@map("financial_account")
+}
+
+// ============================================
+// INTERNAL LEDGER ACCOUNTS
+// ============================================
+
+model LedgerAccount {
+  id       String            @id @default(cuid())
+  entityId String
+  name     String
+  type     LedgerAccountType
+
+  // Identifies special internal accounts
+  // Example: OPENING_EQUITY
+  systemKey String?
+
+  // Distinguishes internal accounts from
+  // ordinary user-facing financial accounts
+  isSystem Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  entity FinancialEntity @relation(fields: [entityId], references: [id], onDelete: Restrict)
+
+  // Optional because some ledger accounts
+  // are internal accounting accounts
+  financialAccount FinancialAccount?
+
+  journalLines JournalLine[]
+
+  @@unique([entityId, systemKey])
+  @@index([entityId, type])
+  @@map("ledger_account")
+}
+
+// ============================================
+// JOURNAL ENTRIES
+// ============================================
+
+// A journal entry represents one complete
+// financial event and contains multiple lines.
+model JournalEntry {
+  id       String           @id @default(cuid())
+  entityId String
+  type     JournalEntryType
+
+  description String?
+
+  // Date when the financial event occurred
+  effectiveDate DateTime @db.Date
+
+  // Timestamp when the entry was posted
+  postedAt DateTime @default(now())
+
+  // Prevents duplicate financial posting
+  idempotencyKey String
+
+  // Reference to the entry being reversed
+  reversesEntryId String? @unique
+
+  entity FinancialEntity @relation(fields: [entityId], references: [id], onDelete: Restrict)
+
+  lines JournalLine[]
+
+  // Self-relation for financial corrections
+  reversesEntry JournalEntry? @relation("JournalReversal", fields: [reversesEntryId], references: [id], onDelete: Restrict)
+
+  reversedBy JournalEntry? @relation("JournalReversal")
+
+  @@unique([entityId, idempotencyKey])
+  @@index([entityId, effectiveDate])
+  @@index([entityId, type])
+  @@map("journal_entry")
+}
+
+// ============================================
+// DOUBLE-ENTRY JOURNAL LINES
+// ============================================
+
+// Each journal line records one debit or credit.
+// The sum of debits must equal the sum of credits
+// for every posted journal entry.
+model JournalLine {
+  id String @id @default(cuid())
+
+  journalEntryId  String
+  ledgerAccountId String
+
+  direction JournalDirection
+
+  // Exact monetary value in USD cents
+  // Example: $125.75 = 12575
+  amountCents BigInt
+
+  journalEntry JournalEntry @relation(fields: [journalEntryId], references: [id], onDelete: Restrict)
+
+  ledgerAccount LedgerAccount @relation(fields: [ledgerAccountId], references: [id], onDelete: Restrict)
+
+  @@index([journalEntryId])
+  @@index([ledgerAccountId])
+  @@map("journal_line")
 }
