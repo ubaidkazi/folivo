@@ -1,6 +1,7 @@
 
 .menu {
   position: relative;
+  /* background-color: red; */
 }
 
 .trigger {
@@ -8,12 +9,11 @@
   align-items: center;
   gap: 10px;
 
-  padding: 6px 10px;
+  padding: 5px 8px;
   border-radius: 12px;
 
   cursor: pointer;
   list-style: none;
-  user-select: none;
 
   transition: background-color 150ms ease;
 }
@@ -22,28 +22,25 @@
   display: none;
 }
 
-.trigger::marker {
-  content: "";
-}
-
 .trigger:hover,
 .menu[open] .trigger {
   background: var(--accent);
 }
 
-.trigger:focus-visible {
-  outline: 2px solid var(--ring, var(--primary));
+.trigger:focus-visible,
+.menuItem:focus-visible {
+  outline: 2px solid var(--ring);
   outline-offset: 2px;
 }
 
 .avatar {
-  width: 36px;
-  height: 36px;
-  flex-shrink: 0;
-
   display: flex;
   align-items: center;
   justify-content: center;
+
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
 
   border-radius: 50%;
 
@@ -52,35 +49,33 @@
 
   font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.3px;
 }
 
 .triggerInformation {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
+  gap: 3px;
   min-width: 0;
 }
 
-.userName {
-  max-width: 145px;
+.triggerName {
+  max-width: 150px;
+
   overflow: hidden;
-  white-space: nowrap;
   text-overflow: ellipsis;
+  white-space: nowrap;
 
   color: var(--foreground);
   font-size: 12px;
   font-weight: 600;
 }
 
-.userRole {
+.triggerSubtitle {
   color: var(--muted-foreground);
   font-size: 11px;
 }
 
 .chevron {
-  flex-shrink: 0;
   color: var(--muted-foreground);
   transition: transform 150ms ease;
 }
@@ -89,88 +84,108 @@
   transform: rotate(180deg);
 }
 
+/* Dropdown */
+
 .dropdown {
   position: absolute;
-  top: calc(100% + 10px);
-  right: 0;
   z-index: 50;
 
+  top: calc(100% + 10px);
+  right: 0;
+
   width: 260px;
-  max-width: calc(100vw - 24px);
-
   padding: 8px;
-
-  background: var(--popover, var(--card));
-  color: var(--popover-foreground, var(--foreground));
 
   border: 1px solid var(--border);
   border-radius: 14px;
 
-  box-shadow:
-    0 12px 32px rgba(0, 0, 0, 0.10),
-    0 2px 6px rgba(0, 0, 0, 0.04);
+  background: var(--popover);
+  color: var(--popover-foreground);
+
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
 }
 
-.dropdownHeader {
+.accountInformation {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
 
-  padding: 12px;
+  padding: 12px 10px;
 }
 
-.dropdownName {
+.accountName {
   font-size: 13px;
   font-weight: 600;
-}
-
-.dropdownEmail {
-  color: var(--muted-foreground);
-  font-size: 12px;
-
   overflow-wrap: anywhere;
 }
 
-.dropdownDivider {
+.accountEmail {
+  color: var(--muted-foreground);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+.menuDivider {
   height: 1px;
-  margin: 4px 0;
+  margin: 5px 0;
 
   background: var(--border);
 }
 
-.dropdownActions {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
+/* Menu actions */
 
-.dropdownItem {
+.menuItem {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 
   width: 100%;
-  min-height: 40px;
+  min-height: 42px;
   padding: 10px 12px;
 
-  border-radius: 8px;
+  border: none;
+  border-radius: 9px;
 
+  background: transparent;
   color: var(--foreground);
+
+  font-family: inherit;
   font-size: 12px;
+  font-weight: 500;
+  text-align: left;
   text-decoration: none;
+
+  cursor: pointer;
+}
+
+button.menuItem:hover:not(:disabled) {
+  background: var(--accent);
 }
 
 .disabledItem {
-  opacity: 0.5;
+  color: var(--muted-foreground);
+  opacity: 0.55;
   cursor: not-allowed;
 }
 
-@media (max-width: 767px) {
-  .triggerInformation,
-  .chevron {
-    display: none;
-  }
+.signOutButton {
+  color: var(--foreground);
+}
 
+.signOutButton:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.errorMessage {
+  margin: 8px 10px 4px;
+
+  color: #dc4545;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+@media (max-width: 767px) {
   .trigger {
     padding: 4px;
   }
@@ -178,5 +193,17 @@
   .avatar {
     width: 34px;
     height: 34px;
+  }
+
+  .triggerInformation,
+  .chevron {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trigger,
+  .chevron {
+    transition: none;
   }
 }
