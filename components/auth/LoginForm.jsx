@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-import { authClient } from "../../lib/auth-client";
+import { authClient } from "@/app/lib/auth-client";
 import styles from "./AuthForm.module.css";
 
 export default function LoginForm() {

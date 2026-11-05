@@ -9,7 +9,7 @@ import {
   LogOut,
 } from "lucide-react";
 
-import { authClient } from "@/lib/auth-client";
+import { authClient } from "@/app/lib/auth-client";
 
 import styles from "./UserMenu.module.css";
 
