@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { auth } from "../lib/auth";
 import { getWorkspaceStatus } from "../lib/finance/workspace";
 
-import OnboardingWizard from "../../components/onboarding/OnboardingWizard";
+import OnboardingWizard from "@/components/onboarding/onboardingWizard";
 
 export default async function OnboardingPage() {
   // Authentication is required.
