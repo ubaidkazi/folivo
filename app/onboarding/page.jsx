@@ -3,11 +3,12 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { auth } from "../lib/auth";
-import { prisma } from "../lib/prisma";
+import { getWorkspaceStatus } from "../lib/finance/workspace";
 
-import OnboardingWizard from "@/components/onboarding/onboardingWizard";
+import OnboardingWizard from "../../components/onboarding/OnboardingWizard";
 
 export default async function OnboardingPage() {
+  // Authentication is required.
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -16,17 +17,13 @@ export default async function OnboardingPage() {
     redirect("/login");
   }
 
-  //check if user has already finished onboarding then redirect to the dashboard
-  const workspace = await prisma.financialEntity.findUnique({
-    where: {
-      ownerId: session.user.id,
-    },
-    select: {
-      onboardingCompletedAt: true,
-    },
-  });
+  // Users who already completed onboarding
+  // should not see the setup wizard again.
+  const { onboardingComplete } = await getWorkspaceStatus(
+    session.user.id
+  );
 
-  if (workspace?.onboardingCompletedAt) {
+  if (onboardingComplete) {
     redirect("/dashboard");
   }
 

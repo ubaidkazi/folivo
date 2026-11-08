@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-
+import { getWorkspaceStatus } from "@/app/lib/finance/workspace"
 import { auth } from "../lib/auth";
 
 export default async function AuthLayout({ children }) {
@@ -10,8 +10,14 @@ export default async function AuthLayout({ children }) {
   });
 
   if (session) {
-    redirect("/dashboard");
-  }
+  const { onboardingComplete } = await getWorkspaceStatus(
+    session.user.id
+  );
+
+  redirect(
+    onboardingComplete ? "/dashboard" : "/onboarding"
+  );
+}
 
   return (
     <main className="min-h-screen bg-background px-4 py-10 text-foreground sm:px-6">

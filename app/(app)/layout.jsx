@@ -3,11 +3,13 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { auth } from "../lib/auth";
+import { getWorkspaceStatus } from "../lib/finance/workspace";
 
 import AppSidebar from "../../components/layout/AppSidebar";
-import AppHeader from  "@/components/layout/AppHeader";
+import AppHeader from "../../components/layout/AppHeader";
 
 export default async function AppLayout({ children }) {
+  // 1. Check authentication.
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -16,6 +18,17 @@ export default async function AppLayout({ children }) {
     redirect("/login");
   }
 
+  // 2. Check whether financial onboarding is complete.
+  const { onboardingComplete } = await getWorkspaceStatus(
+    session.user.id
+  );
+
+  if (!onboardingComplete) {
+    redirect("/onboarding");
+  }
+
+  // 3. Render the application only for
+  // authenticated, onboarded users.
   const user = {
     name: session.user.name,
     email: session.user.email,
