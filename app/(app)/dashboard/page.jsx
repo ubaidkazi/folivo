@@ -1,6 +1,8 @@
 
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import Link from "next/link";
+import { Plus } from "lucide-react";
 
 import {
   Wallet,
@@ -200,6 +202,18 @@ export default async function DashboardPage() {
         <div className="rounded-lg border border-border bg-card px-3 py-2 text-xs font-medium text-muted-foreground">
           {workspace.currency} · {workspace.name}
         </div>
+
+
+        
+          <Link
+            href="/transactions/new"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
+          >
+            <Plus size={17} />
+            Add Transaction
+          </Link>
+
+
       </header>
 
       {/* Financial summary */}
