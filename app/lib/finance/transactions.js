@@ -6,6 +6,19 @@ import { postJournalEntry } from "./ledger";
 
 const MAX_AMOUNT_CENTS = 99999999999n;
 
+const SUPPORTED_TYPES = new Set([
+  "EXPENSE",
+  "INCOME",
+  "TRANSFER",
+  "CREDIT_CARD_PAYMENT",
+]);
+
+const ASSET_ACCOUNT_TYPES = new Set([
+  "CHECKING",
+  "SAVINGS",
+  "CASH",
+]);
+
 export class TransactionValidationError extends Error {
   constructor(message, status = 400) {
     super(message);
@@ -25,7 +38,7 @@ function parseAmount(value) {
 
   if (!/^(0|[1-9]\d{0,8})(\.\d{1,2})?$/.test(amount)) {
     throw new TransactionValidationError(
-      "Enter a valid non-negative USD amount with up to two decimals."
+      "Enter a valid USD amount with up to two decimals."
     );
   }
 
@@ -37,7 +50,7 @@ function parseAmount(value) {
 
   if (cents <= 0n || cents > MAX_AMOUNT_CENTS) {
     throw new TransactionValidationError(
-      "Transaction amount must be greater than zero and within the allowed limit."
+      "Amount must be greater than zero and within the allowed limit."
     );
   }
 
@@ -79,9 +92,9 @@ function validateInput(body) {
     );
   }
 
-  if (!["EXPENSE", "INCOME"].includes(body.type)) {
+  if (!SUPPORTED_TYPES.has(body.type)) {
     throw new TransactionValidationError(
-      "Only EXPENSE and INCOME are supported for now."
+      "Unsupported transaction type."
     );
   }
 
@@ -90,7 +103,7 @@ function validateInput(body) {
     !body.accountId.trim()
   ) {
     throw new TransactionValidationError(
-      "A financial account is required."
+      "A source financial account is required."
     );
   }
 
@@ -120,9 +133,39 @@ function validateInput(body) {
     );
   }
 
+  const needsDestination =
+    body.type === "TRANSFER" ||
+    body.type === "CREDIT_CARD_PAYMENT";
+
+  let destinationAccountId = null;
+
+  if (needsDestination) {
+    if (
+      typeof body.destinationAccountId !== "string" ||
+      !body.destinationAccountId.trim()
+    ) {
+      throw new TransactionValidationError(
+        "A destination account is required."
+      );
+    }
+
+    destinationAccountId = body.destinationAccountId.trim();
+
+    if (destinationAccountId === body.accountId.trim()) {
+      throw new TransactionValidationError(
+        "Source and destination accounts must be different."
+      );
+    }
+  } else if (body.destinationAccountId != null) {
+    throw new TransactionValidationError(
+      "This transaction type does not accept a destination account."
+    );
+  }
+
   return {
     type: body.type,
     accountId: body.accountId.trim(),
+    destinationAccountId,
     amountCents: parseAmount(body.amount),
     effectiveDate: parseDate(body.date),
     description: description || null,
@@ -131,14 +174,205 @@ function validateInput(body) {
 }
 
 /**
- * Record an expense or income transaction for the
- * authenticated user's personal workspace.
+ * Look up an active account within the user's workspace.
+ */
+async function getActiveAccount(tx, entityId, accountId) {
+  const account = await tx.financialAccount.findFirst({
+    where: {
+      id: accountId,
+      entityId,
+      isArchived: false,
+    },
+    select: {
+      id: true,
+      name: true,
+      type: true,
+      ledgerAccountId: true,
+    },
+  });
+
+  if (!account) {
+    throw new TransactionValidationError(
+      "Financial account not found or is archived.",
+      404
+    );
+  }
+
+  return account;
+}
+
+/**
+ * Find or create the internal income/expense ledger account.
+ */
+async function getCategoryLedgerAccount(tx, entityId, type) {
+  const isExpense = type === "EXPENSE";
+
+  const systemKey = isExpense
+    ? "UNCATEGORIZED_EXPENSE"
+    : "UNCATEGORIZED_INCOME";
+
+  return tx.ledgerAccount.upsert({
+    where: {
+      entityId_systemKey: {
+        entityId,
+        systemKey,
+      },
+    },
+    create: {
+      entityId,
+      name: isExpense
+        ? "Uncategorized Expenses"
+        : "Uncategorized Income",
+      type: isExpense ? "EXPENSE" : "INCOME",
+      systemKey,
+      isSystem: true,
+    },
+    update: {},
+  });
+}
+
+/**
+ * Create the debit/credit lines for a transaction.
+ * Clients never choose ledger directions themselves.
+ */
+async function buildJournalLines(
+  tx,
+  entityId,
+  input,
+  sourceAccount,
+  destinationAccount
+) {
+  const amountCents = input.amountCents;
+
+  switch (input.type) {
+    case "EXPENSE": {
+      const expenseAccount = await getCategoryLedgerAccount(
+        tx,
+        entityId,
+        "EXPENSE"
+      );
+
+      // DR Expense
+      // CR Asset or Credit Card Liability
+      return [
+        {
+          ledgerAccountId: expenseAccount.id,
+          direction: "DEBIT",
+          amountCents,
+        },
+        {
+          ledgerAccountId: sourceAccount.ledgerAccountId,
+          direction: "CREDIT",
+          amountCents,
+        },
+      ];
+    }
+
+    case "INCOME": {
+      if (!ASSET_ACCOUNT_TYPES.has(sourceAccount.type)) {
+        throw new TransactionValidationError(
+          "Income must be received into checking, savings, or cash."
+        );
+      }
+
+      const incomeAccount = await getCategoryLedgerAccount(
+        tx,
+        entityId,
+        "INCOME"
+      );
+
+      // DR Asset
+      // CR Income
+      return [
+        {
+          ledgerAccountId: sourceAccount.ledgerAccountId,
+          direction: "DEBIT",
+          amountCents,
+        },
+        {
+          ledgerAccountId: incomeAccount.id,
+          direction: "CREDIT",
+          amountCents,
+        },
+      ];
+    }
+
+    case "TRANSFER": {
+      if (
+        !ASSET_ACCOUNT_TYPES.has(sourceAccount.type) ||
+        !ASSET_ACCOUNT_TYPES.has(destinationAccount.type)
+      ) {
+        throw new TransactionValidationError(
+          "Transfers must be between checking, savings, or cash accounts."
+        );
+      }
+
+      // DR Destination Asset
+      // CR Source Asset
+      return [
+        {
+          ledgerAccountId: destinationAccount.ledgerAccountId,
+          direction: "DEBIT",
+          amountCents,
+        },
+        {
+          ledgerAccountId: sourceAccount.ledgerAccountId,
+          direction: "CREDIT",
+          amountCents,
+        },
+      ];
+    }
+
+    case "CREDIT_CARD_PAYMENT": {
+      if (!ASSET_ACCOUNT_TYPES.has(sourceAccount.type)) {
+        throw new TransactionValidationError(
+          "Credit card payments must come from checking, savings, or cash."
+        );
+      }
+
+      if (destinationAccount.type !== "CREDIT_CARD") {
+        throw new TransactionValidationError(
+          "The payment destination must be a credit card."
+        );
+      }
+
+      // DR Credit Card Liability
+      // CR Source Asset
+      return [
+        {
+          ledgerAccountId: destinationAccount.ledgerAccountId,
+          direction: "DEBIT",
+          amountCents,
+        },
+        {
+          ledgerAccountId: sourceAccount.ledgerAccountId,
+          direction: "CREDIT",
+          amountCents,
+        },
+      ];
+    }
+
+    default:
+      throw new TransactionValidationError(
+        "Unsupported transaction type."
+      );
+  }
+}
+
+/**
+ * Record a financial transaction for the authenticated user.
+ *
+ * Supported:
+ * - EXPENSE
+ * - INCOME
+ * - TRANSFER
+ * - CREDIT_CARD_PAYMENT
  */
 export async function createTransaction(userId, body) {
   const input = validateInput(body);
 
   return prisma.$transaction(async (tx) => {
-    // Find the user's workspace.
+    // 1. Identify the user's financial workspace.
     const workspace = await tx.financialEntity.findUnique({
       where: {
         ownerId: userId,
@@ -156,7 +390,7 @@ export async function createTransaction(userId, body) {
       );
     }
 
-    // Reject an already-used idempotency key.
+    // 2. Check for a previously processed request.
     const existingEntry = await tx.journalEntry.findUnique({
       where: {
         entityId_idempotencyKey: {
@@ -176,100 +410,34 @@ export async function createTransaction(userId, body) {
       );
     }
 
-    // Only allow posting to an active financial account
-    // belonging to the authenticated user's workspace.
-    const account = await tx.financialAccount.findFirst({
-      where: {
-        id: input.accountId,
-        entityId: workspace.id,
-        isArchived: false,
-      },
-      select: {
-        id: true,
-        type: true,
-        ledgerAccountId: true,
-      },
-    });
+    // 3. Validate the source account and ownership.
+    const sourceAccount = await getActiveAccount(
+      tx,
+      workspace.id,
+      input.accountId
+    );
 
-    if (!account) {
-      throw new TransactionValidationError(
-        "Financial account not found or is archived.",
-        404
+    // 4. Validate the destination when required.
+    let destinationAccount = null;
+
+    if (input.destinationAccountId) {
+      destinationAccount = await getActiveAccount(
+        tx,
+        workspace.id,
+        input.destinationAccountId
       );
     }
 
-    // Receiving income into a credit card is not
-    // the same as receiving income into an asset.
-    if (
-      input.type === "INCOME" &&
-      account.type === "CREDIT_CARD"
-    ) {
-      throw new TransactionValidationError(
-        "Income must be received into a checking, savings, or cash account."
-      );
-    }
+    // 5. Apply the accounting rules.
+    const lines = await buildJournalLines(
+      tx,
+      workspace.id,
+      input,
+      sourceAccount,
+      destinationAccount
+    );
 
-    const isExpense = input.type === "EXPENSE";
-
-    // Find or create the default income/expense
-    // ledger account within the same transaction.
-    const systemKey = isExpense
-      ? "UNCATEGORIZED_EXPENSE"
-      : "UNCATEGORIZED_INCOME";
-
-    const categoryAccount = await tx.ledgerAccount.upsert({
-      where: {
-        entityId_systemKey: {
-          entityId: workspace.id,
-          systemKey,
-        },
-      },
-      create: {
-        entityId: workspace.id,
-        name: isExpense
-          ? "Uncategorized Expenses"
-          : "Uncategorized Income",
-        type: isExpense ? "EXPENSE" : "INCOME",
-        systemKey,
-        isSystem: true,
-      },
-      update: {},
-    });
-
-    // Expense:
-    //   DEBIT  Expense
-    //   CREDIT Financial account
-    //
-    // Income:
-    //   DEBIT  Financial account
-    //   CREDIT Income
-    const lines = isExpense
-      ? [
-          {
-            ledgerAccountId: categoryAccount.id,
-            direction: "DEBIT",
-            amountCents: input.amountCents,
-          },
-          {
-            ledgerAccountId: account.ledgerAccountId,
-            direction: "CREDIT",
-            amountCents: input.amountCents,
-          },
-        ]
-      : [
-          {
-            ledgerAccountId: account.ledgerAccountId,
-            direction: "DEBIT",
-            amountCents: input.amountCents,
-          },
-          {
-            ledgerAccountId: categoryAccount.id,
-            direction: "CREDIT",
-            amountCents: input.amountCents,
-          },
-        ];
-
-    // Post the balanced entry.
+    // 6. Post the balanced journal entry atomically.
     const entry = await postJournalEntry(tx, {
       entityId: workspace.id,
       type: input.type,
@@ -279,12 +447,13 @@ export async function createTransaction(userId, body) {
       lines,
     });
 
-    // BigInt values must be converted before JSON.
+    // 7. Return JSON-safe transaction details.
     return {
       id: entry.id,
       type: entry.type,
       description: entry.description,
-      accountId: account.id,
+      accountId: sourceAccount.id,
+      destinationAccountId: destinationAccount?.id ?? null,
       amountCents: input.amountCents.toString(),
       date: input.effectiveDate.toISOString().slice(0, 10),
       postedAt: entry.postedAt.toISOString(),
