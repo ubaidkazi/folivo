@@ -3,6 +3,10 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Plus } from "lucide-react";
+import { getTransactionHistory } from "@/app/lib/finance/transaction-history";
+
+import TransactionList from "@/components/transactions/transactionList";
+
 
 import {
   Wallet,
@@ -168,6 +172,15 @@ export default async function DashboardPage() {
     redirect("/onboarding");
   }
 
+  const recentHistory = await getTransactionHistory(
+  session.user.id,
+  new URLSearchParams({
+    page: "1",
+    pageSize: "5",
+  })
+);
+
+
   const { workspace, accounts, totals } = summary;
 
   const firstName =
@@ -325,11 +338,42 @@ export default async function DashboardPage() {
             description="Track your monthly income, expenses, and spending trends once transaction tracking is available."
           />
 
-          <ComingSoonCard
+          {/* <ComingSoonCard
             icon={Activity}
             title="Recent Activity"
             description="Your latest financial transactions will appear here as you begin recording activity."
-          />
+          /> */}
+
+          
+<section className="overflow-hidden rounded-2xl border border-border bg-card">
+  <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-4">
+    <div>
+      <h2 className="text-sm font-semibold">
+        Recent Activity
+      </h2>
+
+      <p className="mt-1 text-xs text-muted-foreground">
+        Your latest recorded transactions
+      </p>
+    </div>
+
+    <Link
+      href="/transactions"
+      className="shrink-0 text-xs font-medium text-primary hover:underline"
+    >
+      View all
+    </Link>
+  </div>
+
+  <div className="px-4 sm:px-5">
+    <TransactionList
+      transactions={recentHistory.transactions}
+      compact
+    />
+  </div>
+</section>
+
+
 
           <div className="flex items-start gap-3 rounded-xl border border-border bg-accent/40 p-4">
             <Info

@@ -381,6 +381,14 @@ export default function TransactionWizard({
           >
             Back to Dashboard
           </Link>
+
+          <Link
+            href="/transactions"
+            className="rounded-xl border border-border px-6 py-3 text-sm font-medium transition hover:bg-accent"
+          >
+            View Transactions
+          </Link>
+
         </div>
       </div>
     );
