@@ -15,18 +15,20 @@ export const navigationItems = [
     icon: LayoutDashboard,
     enabled: true,
   },
+  
+  {
+    label: "Transactions",
+    href: "/transactions",
+    icon: ArrowLeftRight,
+    enabled: true,
+  },
   {
     label: "Accounts",
     href: "/accounts",
     icon: Wallet,
     enabled: false,
   },
-  {
-    label: "Transactions",
-    href: "/transactions",
-    icon: ArrowLeftRight,
-    enabled: false,
-  },
+  
   {
     label: "Budgets",
     href: "/budgets",
